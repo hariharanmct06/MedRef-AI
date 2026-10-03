@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import AuthView from './components/Auth/AuthView';
 import Sidebar from './components/Navigation/Sidebar';
 import BottomNav from './components/Navigation/BottomNav';
 import Header from './components/Navigation/Header';
@@ -19,19 +20,22 @@ import SettingsView from './components/Settings/SettingsView';
 import VoiceSearchModal from './components/Modals/VoiceSearchModal';
 import CommandMenuModal from './components/Modals/CommandMenuModal';
 
-import { COMPREHENSIVE_DISEASES } from './data/medrefData';
-
 export default function App() {
+  // Authentication state (Starts null for first-time user welcome flow)
+  const [user, setUser] = useState(null);
+
+  // App workspace view state
   const [currentView, setCurrentView] = useState('home');
   const [themeMode, setThemeMode] = useState('dark'); // dark | light
   const [searchQuery, setSearchQuery] = useState('');
   
+  // Real user activity state - STARTS COMPLETELY EMPTY FOR FIRST TIME USER
+  const [savedItems, setSavedItems] = useState([]);
+  const [recentSearches, setRecentSearches] = useState([]);
+
   // Modals state
   const [isVoiceOpen, setIsVoiceOpen] = useState(false);
   const [isCommandOpen, setIsCommandOpen] = useState(false);
-
-  // Saved library state
-  const [savedItems, setSavedItems] = useState([COMPREHENSIVE_DISEASES[0]]);
 
   // Listen for global Cmd+K
   useEffect(() => {
@@ -45,8 +49,15 @@ export default function App() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
+  const handleAuthenticate = (userData) => {
+    setUser(userData);
+  };
+
   const handleOpenSearchWithQuery = (queryStr) => {
     setSearchQuery(queryStr);
+    if (!recentSearches.includes(queryStr)) {
+      setRecentSearches(prev => [queryStr, ...prev.slice(0, 4)]);
+    }
     setCurrentView('ai-search');
   };
 
@@ -62,17 +73,24 @@ export default function App() {
 
   const handleResetAllData = () => {
     setSavedItems([]);
+    setRecentSearches([]);
     setSearchQuery('');
+    setUser(null);
     setCurrentView('home');
   };
+
+  // Render Auth Flow if user hasn't logged in / completed onboarding
+  if (!user) {
+    return <AuthView onAuthenticate={handleAuthenticate} />;
+  }
 
   return (
     <div className={`min-h-screen flex flex-col antialiased font-sans ${
       themeMode === 'dark' 
-        ? 'bg-[#050814] text-slate-100 selection:bg-cyan-500 selection:text-slate-950' 
-        : 'bg-slate-50 text-slate-900 selection:bg-cyan-500 selection:text-slate-950'
+        ? 'bg-[#090d16] text-slate-100 selection:bg-sky-600 selection:text-white' 
+        : 'bg-slate-50 text-slate-900 selection:bg-sky-500 selection:text-white'
     }`}>
-      {/* Top Universal Safety Disclaimer Banner */}
+      {/* Top Universal Medical Disclaimer Banner */}
       <SafetyBanner />
 
       <div className="flex-1 flex overflow-hidden">
@@ -83,6 +101,7 @@ export default function App() {
           themeMode={themeMode}
           setThemeMode={setThemeMode}
           onOpenCommandMenu={() => setIsCommandOpen(true)}
+          user={user}
         />
 
         {/* Main Workspace Area */}
@@ -95,17 +114,20 @@ export default function App() {
             setThemeMode={setThemeMode}
             onOpenCommandMenu={() => setIsCommandOpen(true)}
             onOpenVoiceModal={() => setIsVoiceOpen(true)}
+            user={user}
           />
 
           {/* View Container */}
           <main className="flex-1 px-4 sm:px-8 py-6 max-w-7xl mx-auto w-full">
             {currentView === 'home' && (
               <HomeView
+                user={user}
                 setCurrentView={setCurrentView}
                 onOpenSearchWithQuery={handleOpenSearchWithQuery}
                 onOpenVoiceModal={() => setIsVoiceOpen(true)}
                 onOpenVisionWithUpload={() => setCurrentView('vision')}
                 savedItemsCount={savedItems.length}
+                recentSearches={recentSearches}
               />
             )}
 
@@ -158,14 +180,17 @@ export default function App() {
                 savedItems={savedItems}
                 onOpenTopic={handleOpenSearchWithQuery}
                 onRemoveSavedItem={handleRemoveSavedItem}
+                setCurrentView={setCurrentView}
               />
             )}
 
             {currentView === 'profile' && (
               <ProfileView
+                user={user}
                 themeMode={themeMode}
                 setThemeMode={setThemeMode}
                 setCurrentView={setCurrentView}
+                onSignOut={() => setUser(null)}
               />
             )}
 
