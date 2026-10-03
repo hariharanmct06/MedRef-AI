@@ -1,170 +1,204 @@
-import React, { useState } from 'react';
-import LandingView from './components/LandingPage/LandingView';
+import React, { useState, useEffect } from 'react';
 import Sidebar from './components/Navigation/Sidebar';
 import BottomNav from './components/Navigation/BottomNav';
 import Header from './components/Navigation/Header';
 import SafetyBanner from './components/Navigation/SafetyBanner';
-import DashboardView from './components/Dashboard/DashboardView';
-import UploadScannerView from './components/Scanner/UploadScannerView';
-import ReportViewerModal from './components/ReportViewer/ReportViewerModal';
-import CompareReportsView from './components/Comparison/CompareReportsView';
-import MedicalJourneyView from './components/Journey/MedicalJourneyView';
-import AskRecordsView from './components/AskRecords/AskRecordsView';
-import MedicationOrganizerView from './components/Medications/MedicationOrganizerView';
-import DoctorVisitView from './components/DoctorVisit/DoctorVisitView';
-import MedicalReferenceView from './components/Reference/MedicalReferenceView';
-import PrivacyView from './components/Privacy/PrivacyView';
-import SettingsView from './components/Settings/SettingsView';
-import GlobalSearchModal from './components/Navigation/GlobalSearchModal';
 
-import { DEMO_DOCUMENTS } from './data/demoData';
+import HomeView from './components/Home/HomeView';
+import AISearchWorkspace from './components/AISearch/AISearchWorkspace';
+import DiseaseReferenceView from './components/Diseases/DiseaseReferenceView';
+import DrugReferenceView from './components/Drugs/DrugReferenceView';
+import CalculatorsView from './components/Calculators/CalculatorsView';
+import AIVisionView from './components/AIVision/AIVisionView';
+import KnowledgeGraphView from './components/KnowledgeGraph/KnowledgeGraphView';
+import LearnView from './components/Learn/LearnView';
+import LibraryView from './components/Library/LibraryView';
+import ProfileView from './components/Profile/ProfileView';
+import SettingsView from './components/Settings/SettingsView';
+
+import VoiceSearchModal from './components/Modals/VoiceSearchModal';
+import CommandMenuModal from './components/Modals/CommandMenuModal';
+
+import { COMPREHENSIVE_DISEASES } from './data/medrefData';
 
 export default function App() {
-  const [currentView, setCurrentView] = useState('landing');
-  const [demoMode, setDemoMode] = useState(true);
-  const [documents, setDocuments] = useState(DEMO_DOCUMENTS);
-  const [selectedDocument, setSelectedDocument] = useState(null);
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const [referenceInitialQuery, setReferenceInitialQuery] = useState('');
+  const [currentView, setCurrentView] = useState('home');
+  const [themeMode, setThemeMode] = useState('dark'); // dark | light
+  const [searchQuery, setSearchQuery] = useState('');
+  
+  // Modals state
+  const [isVoiceOpen, setIsVoiceOpen] = useState(false);
+  const [isCommandOpen, setIsCommandOpen] = useState(false);
 
-  // Add newly uploaded document
-  const handleAddDocument = (newDoc) => {
-    setDocuments(prev => [newDoc, ...prev]);
+  // Saved library state
+  const [savedItems, setSavedItems] = useState([COMPREHENSIVE_DISEASES[0]]);
+
+  // Listen for global Cmd+K
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        setIsCommandOpen(prev => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  const handleOpenSearchWithQuery = (queryStr) => {
+    setSearchQuery(queryStr);
+    setCurrentView('ai-search');
   };
 
-  // Reset data callback
+  const handleSaveItem = (itemObj) => {
+    if (!savedItems.some(i => i.id === itemObj.id)) {
+      setSavedItems(prev => [...prev, itemObj]);
+    }
+  };
+
+  const handleRemoveSavedItem = (id) => {
+    setSavedItems(prev => prev.filter(i => i.id !== id));
+  };
+
   const handleResetAllData = () => {
-    setDocuments([]);
-    setSelectedDocument(null);
-  };
-
-  const handleOpenReferenceWithQuery = (queryStr) => {
-    setReferenceInitialQuery(queryStr);
-    setCurrentView('reference');
+    setSavedItems([]);
+    setSearchQuery('');
+    setCurrentView('home');
   };
 
   return (
-    <div className="min-h-screen bg-navy-950 text-slate-100 font-sans flex flex-col antialiased selection:bg-cyan-500 selection:text-navy-950">
-      {/* Universal Top Safety Disclaimer Banner (Shown across medical portal pages) */}
-      {currentView !== 'landing' && <SafetyBanner />}
+    <div className={`min-h-screen flex flex-col antialiased font-sans ${
+      themeMode === 'dark' 
+        ? 'bg-[#050814] text-slate-100 selection:bg-cyan-500 selection:text-slate-950' 
+        : 'bg-slate-50 text-slate-900 selection:bg-cyan-500 selection:text-slate-950'
+    }`}>
+      {/* Top Universal Safety Disclaimer Banner */}
+      <SafetyBanner />
 
-      {currentView === 'landing' ? (
-        <LandingView 
-          onExploreApp={() => setCurrentView('dashboard')}
-          onOpenDemo={() => { setDemoMode(true); setCurrentView('dashboard'); }}
+      <div className="flex-1 flex overflow-hidden">
+        {/* Desktop Sidebar Navigation */}
+        <Sidebar
+          currentView={currentView}
+          setCurrentView={setCurrentView}
+          themeMode={themeMode}
+          setThemeMode={setThemeMode}
+          onOpenCommandMenu={() => setIsCommandOpen(true)}
         />
-      ) : (
-        <div className="flex-1 flex overflow-hidden">
-          {/* Desktop Left Sidebar Navigation */}
-          <Sidebar 
+
+        {/* Main Workspace Area */}
+        <div className="flex-1 flex flex-col min-w-0 min-h-screen overflow-y-auto">
+          {/* Header Bar */}
+          <Header
             currentView={currentView}
             setCurrentView={setCurrentView}
-            demoMode={demoMode}
-            setDemoMode={setDemoMode}
-            documentCount={documents.length}
+            themeMode={themeMode}
+            setThemeMode={setThemeMode}
+            onOpenCommandMenu={() => setIsCommandOpen(true)}
+            onOpenVoiceModal={() => setIsVoiceOpen(true)}
           />
 
-          {/* Main App Workspace */}
-          <div className="flex-1 flex flex-col min-w-0 min-h-screen overflow-y-auto">
-            {/* Top Workspace Header */}
-            <Header 
-              currentView={currentView}
-              setCurrentView={setCurrentView}
-              demoMode={demoMode}
-              setDemoMode={setDemoMode}
-              onOpenSearch={() => setIsSearchOpen(true)}
-            />
+          {/* View Container */}
+          <main className="flex-1 px-4 sm:px-8 py-6 max-w-7xl mx-auto w-full">
+            {currentView === 'home' && (
+              <HomeView
+                setCurrentView={setCurrentView}
+                onOpenSearchWithQuery={handleOpenSearchWithQuery}
+                onOpenVoiceModal={() => setIsVoiceOpen(true)}
+                onOpenVisionWithUpload={() => setCurrentView('vision')}
+                savedItemsCount={savedItems.length}
+              />
+            )}
 
-            {/* Main Content Area Container */}
-            <main className="flex-1 px-4 sm:px-8 py-6 max-w-7xl mx-auto w-full">
-              {currentView === 'dashboard' && (
-                <DashboardView
-                  documents={documents}
-                  setCurrentView={setCurrentView}
-                  onSelectDocument={(doc) => setSelectedDocument(doc)}
-                  onOpenUpload={() => setCurrentView('upload')}
-                />
-              )}
+            {currentView === 'ai-search' && (
+              <AISearchWorkspace
+                initialQuery={searchQuery}
+                onSelectTopic={handleOpenSearchWithQuery}
+                onOpenKnowledgeGraph={() => setCurrentView('knowledge-graph')}
+                onSaveItem={handleSaveItem}
+                savedItemIds={savedItems.map(i => i.id)}
+              />
+            )}
 
-              {(currentView === 'records' || currentView === 'upload') && (
-                <UploadScannerView
-                  onAddDocument={handleAddDocument}
-                  onSelectDocument={(doc) => setSelectedDocument(doc)}
-                />
-              )}
+            {currentView === 'diseases' && (
+              <DiseaseReferenceView
+                onOpenSearchWithQuery={handleOpenSearchWithQuery}
+              />
+            )}
 
-              {currentView === 'journey' && (
-                <MedicalJourneyView
-                  documents={documents}
-                  onSelectDocument={(doc) => setSelectedDocument(doc)}
-                />
-              )}
+            {currentView === 'drugs' && (
+              <DrugReferenceView
+                onOpenTopic={handleOpenSearchWithQuery}
+              />
+            )}
 
-              {currentView === 'compare' && (
-                <CompareReportsView documents={documents} />
-              )}
+            {currentView === 'calculators' && (
+              <CalculatorsView />
+            )}
 
-              {currentView === 'ask-ai' && (
-                <AskRecordsView
-                  documents={documents}
-                  onSelectDocument={(doc) => setSelectedDocument(doc)}
-                />
-              )}
+            {currentView === 'vision' && (
+              <AIVisionView
+                onOpenSearchWithQuery={handleOpenSearchWithQuery}
+              />
+            )}
 
-              {currentView === 'medications' && (
-                <MedicationOrganizerView
-                  documents={documents}
-                  onSelectDocument={(doc) => setSelectedDocument(doc)}
-                />
-              )}
+            {currentView === 'knowledge-graph' && (
+              <KnowledgeGraphView
+                onSelectTopic={handleOpenSearchWithQuery}
+              />
+            )}
 
-              {currentView === 'appointments' && (
-                <DoctorVisitView documents={documents} />
-              )}
+            {currentView === 'learn' && (
+              <LearnView
+                onOpenSearchWithQuery={handleOpenSearchWithQuery}
+              />
+            )}
 
-              {currentView === 'reference' && (
-                <MedicalReferenceView initialQuery={referenceInitialQuery} />
-              )}
+            {currentView === 'library' && (
+              <LibraryView
+                savedItems={savedItems}
+                onOpenTopic={handleOpenSearchWithQuery}
+                onRemoveSavedItem={handleRemoveSavedItem}
+              />
+            )}
 
-              {currentView === 'privacy' && <PrivacyView />}
+            {currentView === 'profile' && (
+              <ProfileView
+                themeMode={themeMode}
+                setThemeMode={setThemeMode}
+                setCurrentView={setCurrentView}
+              />
+            )}
 
-              {currentView === 'settings' && (
-                <SettingsView
-                  demoMode={demoMode}
-                  setDemoMode={(val) => {
-                    setDemoMode(val);
-                    if (val) setDocuments(DEMO_DOCUMENTS);
-                  }}
-                  onResetAllData={handleResetAllData}
-                />
-              )}
-            </main>
-          </div>
-
-          {/* Mobile Bottom Navigation Bar */}
-          <BottomNav 
-            currentView={currentView}
-            setCurrentView={setCurrentView}
-          />
+            {currentView === 'settings' && (
+              <SettingsView
+                themeMode={themeMode}
+                setThemeMode={setThemeMode}
+                onResetAllData={handleResetAllData}
+              />
+            )}
+          </main>
         </div>
-      )}
 
-      {/* Interactive Report Inspector / Modal */}
-      {selectedDocument && (
-        <ReportViewerModal
-          document={selectedDocument}
-          onClose={() => setSelectedDocument(null)}
-          onOpenReference={handleOpenReferenceWithQuery}
+        {/* Mobile Bottom Navigation */}
+        <BottomNav
+          currentView={currentView}
+          setCurrentView={setCurrentView}
         />
-      )}
+      </div>
 
-      {/* Global Quick Search Modal */}
-      <GlobalSearchModal
-        isOpen={isSearchOpen}
-        onClose={() => setIsSearchOpen(false)}
-        documents={documents}
-        onSelectDocument={(doc) => setSelectedDocument(doc)}
-        onSelectReference={handleOpenReferenceWithQuery}
+      {/* Voice Search Modal */}
+      <VoiceSearchModal
+        isOpen={isVoiceOpen}
+        onClose={() => setIsVoiceOpen(false)}
+        onVoiceQuery={handleOpenSearchWithQuery}
+      />
+
+      {/* Quick Command Menu Modal */}
+      <CommandMenuModal
+        isOpen={isCommandOpen}
+        onClose={() => setIsCommandOpen(false)}
+        onNavigate={setCurrentView}
+        onSelectQuery={handleOpenSearchWithQuery}
       />
     </div>
   );

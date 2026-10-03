@@ -1,121 +1,158 @@
 import React from 'react';
-import { 
-  LayoutDashboard, 
-  FileText, 
-  GitCommit, 
-  ArrowLeftRight, 
-  Pill, 
-  Sparkles, 
-  Calendar, 
-  BookOpen, 
-  Settings, 
-  UploadCloud,
-  ChevronRight,
-  ShieldCheck,
-  Globe
+import {
+  Home,
+  Search,
+  BookOpen,
+  Pill,
+  Activity,
+  Calculator,
+  Eye,
+  GitFork,
+  Bookmark,
+  User,
+  Settings,
+  Command,
+  Sun,
+  Moon,
+  ShieldCheck
 } from 'lucide-react';
 import Logo from './Logo';
 
-export default function Sidebar({ currentView, setCurrentView, demoMode, setDemoMode, documentCount }) {
-  const navItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { id: 'records', label: 'My Records', icon: FileText, badge: documentCount },
-    { id: 'journey', label: 'Medical Journey', icon: GitCommit },
-    { id: 'compare', label: 'Compare Reports', icon: ArrowLeftRight },
-    { id: 'medications', label: 'Medications', icon: Pill },
-    { id: 'ask-ai', label: 'Ask My Records', icon: Sparkles, highlight: true },
-    { id: 'appointments', label: 'Appointments', icon: Calendar },
-    { id: 'reference', label: 'Medical Reference', icon: BookOpen },
-    { id: 'privacy', label: 'Privacy & Security', icon: ShieldCheck },
-    { id: 'settings', label: 'Settings', icon: Settings }
+export default function Sidebar({
+  currentView,
+  setCurrentView,
+  themeMode,
+  setThemeMode,
+  onOpenCommandMenu
+}) {
+  const mainNav = [
+    { id: 'home', label: 'Home', icon: Home, badge: null },
+    { id: 'ai-search', label: 'AI Search', icon: Search, badge: 'AI' },
+    { id: 'diseases', label: 'Diseases', icon: Activity, badge: null },
+    { id: 'drugs', label: 'Drug Reference', icon: Pill, badge: null },
+    { id: 'calculators', label: 'Calculators', icon: Calculator, badge: null },
+    { id: 'vision', label: 'AI Vision', icon: Eye, badge: 'Vision' },
+    { id: 'knowledge-graph', label: 'Knowledge Graph', icon: GitFork, badge: 'Graph' },
+    { id: 'learn', label: 'Learn & Revision', icon: BookOpen, badge: 'Pro' },
+    { id: 'library', label: 'Saved Library', icon: Bookmark, badge: null },
+  ];
+
+  const bottomNav = [
+    { id: 'profile', label: 'Profile & Stats', icon: User },
+    { id: 'settings', label: 'Settings', icon: Settings },
   ];
 
   return (
-    <aside className="w-64 bg-navy-950/90 border-r border-slate-800/80 flex flex-col justify-between hidden md:flex h-screen sticky top-0 z-30 backdrop-blur-xl">
-      {/* Top Header & Logo */}
-      <div className="p-5 border-b border-slate-800/60">
-        <Logo size="normal" />
-        
-        {/* View mode switcher badge */}
-        <div className="mt-4 flex items-center justify-between p-2 rounded-xl bg-slate-900/90 border border-slate-800/80">
-          <button 
-            onClick={() => setCurrentView('landing')}
-            className="flex items-center gap-2 text-xs font-medium text-slate-300 hover:text-cyan-400 transition-colors w-full justify-between"
+    <aside className="w-64 bg-slate-950/80 backdrop-blur-xl border-r border-slate-800/60 flex flex-col justify-between hidden md:flex h-screen sticky top-0 z-30 select-none">
+      {/* Brand Header with Official MedRef AI Logo */}
+      <div>
+        <div className="px-5 py-4 border-b border-slate-800/50 flex items-center justify-between">
+          <div
+            onClick={() => setCurrentView('home')}
+            className="cursor-pointer group"
           >
-            <span className="flex items-center gap-1.5">
-              <Globe className="w-3.5 h-3.5 text-cyan-400" /> View Landing Page
+            <Logo size="normal" showText={true} />
+          </div>
+        </div>
+
+        {/* Quick Command Palette Trigger */}
+        <div className="px-4 pt-4 pb-2">
+          <button
+            onClick={onOpenCommandMenu}
+            className="w-full flex items-center justify-between px-3 py-2 bg-slate-900/80 hover:bg-slate-800/80 border border-slate-800/80 hover:border-slate-700 rounded-lg text-xs text-slate-400 hover:text-slate-200 transition-all group"
+          >
+            <span className="flex items-center gap-2">
+              <Search className="w-3.5 h-3.5 text-cyan-400 group-hover:scale-110 transition-transform" />
+              Search or jump to...
             </span>
-            <ChevronRight className="w-3.5 h-3.5 text-slate-500" />
+            <kbd className="px-1.5 py-0.5 bg-slate-800 text-[10px] text-slate-400 rounded border border-slate-700 font-mono flex items-center gap-0.5">
+              <Command className="w-2.5 h-2.5" /> K
+            </kbd>
           </button>
         </div>
+
+        {/* Navigation Items */}
+        <nav className="px-3 py-2 space-y-1">
+          {mainNav.map((item) => {
+            const Icon = item.icon;
+            const isActive = currentView === item.id;
+            return (
+              <button
+                key={item.id}
+                onClick={() => setCurrentView(item.id)}
+                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                  isActive
+                    ? 'bg-gradient-to-r from-cyan-950/80 to-slate-900 text-cyan-300 border border-cyan-500/30 shadow-[0_0_15px_rgba(6,182,212,0.1)]'
+                    : 'text-slate-400 hover:text-slate-100 hover:bg-slate-900/60'
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <Icon className={`w-4 h-4 transition-colors ${isActive ? 'text-cyan-400' : 'text-slate-500'}`} />
+                  <span>{item.label}</span>
+                </div>
+                {item.badge && (
+                  <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${
+                    isActive ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40' : 'bg-slate-800 text-slate-400'
+                  }`}>
+                    {item.badge}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </nav>
       </div>
 
-      {/* Main Navigation Menu */}
-      <div className="flex-1 overflow-y-auto px-3 py-4 space-y-1">
-        <div className="px-3 pb-2 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
-          Main Workspace
-        </div>
-        
-        {navItems.map((item) => {
+      {/* Bottom Section */}
+      <div className="px-3 py-4 border-t border-slate-800/60 space-y-2">
+        {bottomNav.map((item) => {
           const Icon = item.icon;
           const isActive = currentView === item.id;
           return (
             <button
               key={item.id}
               onClick={() => setCurrentView(item.id)}
-              className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-all group ${
-                isActive 
-                  ? 'bg-gradient-to-r from-cyan-500/20 to-blue-600/10 text-cyan-300 border border-cyan-500/30 shadow-md shadow-cyan-500/5' 
-                  : 'text-slate-400 hover:text-slate-100 hover:bg-slate-900/60'
+              className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-all ${
+                isActive
+                  ? 'bg-slate-900 text-cyan-300 border border-slate-700'
+                  : 'text-slate-400 hover:text-slate-100 hover:bg-slate-900/50'
               }`}
             >
-              <div className="flex items-center gap-3">
-                <Icon className={`w-4 h-4 transition-colors ${
-                  isActive ? 'text-cyan-400' : 'text-slate-400 group-hover:text-slate-200'
-                }`} />
-                <span>{item.label}</span>
-              </div>
-              
-              {item.badge !== undefined && (
-                <span className={`text-[11px] px-2 py-0.5 rounded-full font-semibold ${
-                  isActive ? 'bg-cyan-500/30 text-cyan-200' : 'bg-slate-800 text-slate-400'
-                }`}>
-                  {item.badge}
-                </span>
-              )}
-
-              {item.highlight && !isActive && (
-                <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
-              )}
+              <Icon className={`w-4 h-4 ${isActive ? 'text-cyan-400' : 'text-slate-500'}`} />
+              <span>{item.label}</span>
             </button>
           );
         })}
-      </div>
 
-      {/* Quick Upload CTA */}
-      <div className="p-4 border-t border-slate-800/80 space-y-3">
-        <button
-          onClick={() => setCurrentView('upload')}
-          className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white text-xs font-semibold flex items-center justify-center gap-2 shadow-lg shadow-cyan-500/25 transition-all transform hover:-translate-y-0.5 active:translate-y-0"
-        >
-          <UploadCloud className="w-4 h-4" />
-          <span>Upload Document</span>
-        </button>
-
-        {/* Demo Mode Toggle */}
-        <div className="p-2.5 rounded-xl bg-slate-900/90 border border-slate-800/80 flex items-center justify-between text-xs">
-          <div className="flex items-center gap-2">
-            <span className={`w-2 h-2 rounded-full ${demoMode ? 'bg-cyan-400 animate-ping' : 'bg-slate-500'}`} />
-            <span className="text-slate-300 font-medium">Demo Mode</span>
-          </div>
+        {/* Dark / Light Mode Toggle */}
+        <div className="pt-2 flex items-center justify-between px-3">
+          <span className="text-xs text-slate-400 font-medium">Appearance</span>
           <button
-            onClick={() => setDemoMode(!demoMode)}
-            className={`px-2 py-1 rounded-md text-[10px] font-semibold tracking-wider uppercase transition-colors ${
-              demoMode ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30' : 'bg-slate-800 text-slate-400'
-            }`}
+            onClick={() => setThemeMode(themeMode === 'dark' ? 'light' : 'dark')}
+            className="p-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-300 hover:text-cyan-400 hover:border-slate-700 transition-all flex items-center gap-1 text-xs"
+            title="Toggle Light/Dark Theme"
           >
-            {demoMode ? 'Active' : 'Off'}
+            {themeMode === 'dark' ? (
+              <>
+                <Moon className="w-3.5 h-3.5 text-cyan-400" />
+                <span className="text-[11px]">Dark</span>
+              </>
+            ) : (
+              <>
+                <Sun className="w-3.5 h-3.5 text-amber-400" />
+                <span className="text-[11px]">Light</span>
+              </>
+            )}
           </button>
+        </div>
+
+        {/* Safety Badge */}
+        <div className="mt-2 p-2.5 rounded-xl bg-slate-900/80 border border-slate-800/80 flex items-center gap-2">
+          <ShieldCheck className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+          <div className="text-[10px] text-slate-400 leading-tight">
+            <span className="text-slate-200 font-medium">Medical Reference Only</span>
+            <p>Smarter Reference. Better Care.</p>
+          </div>
         </div>
       </div>
     </aside>
